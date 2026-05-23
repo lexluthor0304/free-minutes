@@ -615,11 +615,55 @@ input[type="range"] {
 .focus-header-actions {
   display: flex;
   align-items: end;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 12px;
 }
 
+.focus-external-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 38px;
+}
+
+.focus-github-button {
+  display: inline-flex;
+  align-items: center;
+  min-width: 86px;
+  min-height: 28px;
+}
+
+.focus-github-button .github-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid #d1d9e0;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f6f8fa, #ebf0f4 90%);
+  color: #25292e;
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 30px;
+  text-decoration: none;
+}
+
+.focus-github-button .github-button:hover {
+  border-color: #d1d9e0;
+  background: linear-gradient(180deg, #eff2f5, #e5eaee 90%);
+  color: #25292e;
+}
+
+.focus-github-button iframe {
+  display: block;
+}
+
+.focus-company-link,
 .focus-privacy {
-  border-color: #ded6c8;
+  border: 1px solid #ded6c8;
   border-radius: 999px;
   background: #fffdf8;
   color: #5b646d;
@@ -627,6 +671,17 @@ input[type="range"] {
   padding: 0 14px;
   font-size: 13px;
   font-weight: 800;
+}
+
+.focus-company-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.focus-company-link:hover {
+  border-color: #bfb5a5;
+  color: #171717;
 }
 
 .focus-layout {

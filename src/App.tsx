@@ -22,6 +22,7 @@ import { inferSpeaker, inferSpeakerFromSamples } from "./lib/speaker";
 import { LocalAudioRecorder } from "./lib/recorder";
 import { transcribeWithCloudflareStt } from "./lib/cloudflareStt";
 import { createPcmCapture, type PcmCapture } from "./lib/pcm";
+import { initializeGithubButtons } from "./lib/github";
 import {
   getAdsenseSlotConfig,
   getStoredGoogleConsent,
@@ -202,9 +203,11 @@ function App() {
   const segmentsRef = useRef<TranscriptSegment[]>(segments);
   const screenshotsRef = useRef<ScreenshotItem[]>(screenshots);
   const sttInterimTextRef = useRef("");
+  const githubButtonRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
     initializeGoogleSlots();
+    window.requestAnimationFrame(() => initializeGithubButtons(githubButtonRef.current));
   }, []);
 
   useEffect(() => {
@@ -961,6 +964,29 @@ function App() {
             <h1>Free Minutes</h1>
           </div>
           <div className="focus-header-actions">
+            <nav className="focus-external-links" aria-label="External links">
+              <span className="focus-github-button">
+                <a
+                  ref={githubButtonRef}
+                  className="github-button"
+                  href="https://github.com/lexluthor0304/free-minutes"
+                  data-icon="octicon-star"
+                  data-size="large"
+                  data-show-count="true"
+                  aria-label="Star lexluthor0304/free-minutes on GitHub"
+                >
+                  Star
+                </a>
+              </span>
+              <a
+                className="focus-company-link"
+                href="https://neoanaloglab.com/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Neo Analog Lab
+              </a>
+            </nav>
             <button type="button" className="focus-privacy" onClick={() => setConsentPanelOpen(true)}>
               Privacy
             </button>

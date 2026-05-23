@@ -10,6 +10,7 @@ The app is now a hybrid static frontend plus one Cloudflare Worker endpoint:
 - `/api/transcribe` remains as a fallback and sends short WAV chunks to Whisper large v3 turbo if the realtime WebSocket is unavailable.
 - Screenshots, complete recordings, TXT, Markdown, manifest data, and ZIP files are not uploaded.
 - GA4 is embedded with the official Google tag snippet and Google Consent Mode. Google AdSense is wired for production builds with the configured publisher ID.
+- The header includes a GitHub button for the source repository and a company homepage link.
 - The app does not include login, database, or remote storage.
 
 ## Local Start
@@ -85,6 +86,7 @@ npx wrangler deploy
 - Live STT uploads raw mixed-audio PCM frames to this Cloudflare Worker, which calls Cloudflare Workers AI.
 - Exported audio files, screenshots, transcript text, meeting notes, manifest data, and ZIP files are not uploaded by the export features.
 - GA4 loads through the official Google tag snippet with Consent Mode defaulting analytics and ads storage to denied until the user chooses.
+- The GitHub button loads the GitHub Buttons script for the visible repository button. The company homepage link only navigates when clicked.
 - The app uses `localStorage` only to remember the Google consent choice. Session data is kept in memory and is cleared by refresh or `Clear Session`.
 
 ## Cloudflare Realtime STT
