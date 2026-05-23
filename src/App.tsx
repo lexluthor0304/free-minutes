@@ -29,10 +29,8 @@ import {
 } from "./lib/chromeAi";
 import { initializeGithubButtons } from "./lib/github";
 import {
-  getAdsenseSlotConfig,
   getStoredGoogleConsent,
   initializeGoogleSlots,
-  requestAdsenseRender,
   setGoogleConsentChoice,
   type GoogleConsentChoice,
 } from "./lib/google";
@@ -1157,7 +1155,6 @@ function App() {
             </p>
 
             <FocusMessages errors={errors} warnings={warnings} />
-            <GoogleAdSlot consent={googleConsent} />
           </section>
 
           <section className="focus-transcript" aria-label="Transcript">
@@ -1342,34 +1339,6 @@ function SeoContent() {
         </div>
       </dl>
     </article>
-  );
-}
-
-function GoogleAdSlot(props: { consent: GoogleConsentChoice | null }) {
-  const config = getAdsenseSlotConfig(props.consent);
-
-  useEffect(() => {
-    if (!config.enabled) {
-      return;
-    }
-    window.requestAnimationFrame(requestAdsenseRender);
-  }, [config.enabled]);
-
-  return (
-    <aside className="focus-ad" aria-label="Sponsored">
-      {config.enabled ? (
-        <ins
-          className="adsbygoogle"
-          style={{ display: "block" }}
-          data-ad-client={config.client}
-          data-ad-slot={config.slot}
-          data-ad-format="auto"
-          data-full-width-responsive="true"
-        />
-      ) : (
-        <span>Sponsored</span>
-      )}
-    </aside>
   );
 }
 

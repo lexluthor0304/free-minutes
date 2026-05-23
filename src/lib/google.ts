@@ -8,7 +8,6 @@ const GA4_ID =
 const ADSENSE_CLIENT =
   import.meta.env.VITE_ADSENSE_CLIENT?.trim() ||
   (import.meta.env.PROD ? DEFAULT_PRODUCTION_ADSENSE_CLIENT : "");
-const ADSENSE_SLOT = import.meta.env.VITE_ADSENSE_SLOT?.trim() ?? "";
 let runtimeGoogleConsent: GoogleConsentChoice | null = null;
 
 declare global {
@@ -24,12 +23,6 @@ declare global {
 
 export type GoogleConsentChoice = "granted" | "denied";
 
-export type AdsenseSlotConfig = {
-  enabled: boolean;
-  client: string;
-  slot: string;
-};
-
 export function initializeGoogleSlots(): void {
   initializeGa4();
   const consent = getStoredGoogleConsent();
@@ -38,24 +31,6 @@ export function initializeGoogleSlots(): void {
     initializeAdsense();
     sendGooglePageView();
   }
-}
-
-export function getAdsenseSlotConfig(
-  consent: GoogleConsentChoice | null = getStoredGoogleConsent(),
-): AdsenseSlotConfig {
-  return {
-    enabled: Boolean(consent === "granted" && ADSENSE_CLIENT && ADSENSE_SLOT),
-    client: ADSENSE_CLIENT,
-    slot: ADSENSE_SLOT,
-  };
-}
-
-export function requestAdsenseRender(): void {
-  if (!ADSENSE_CLIENT || !ADSENSE_SLOT || getStoredGoogleConsent() !== "granted") {
-    return;
-  }
-  window.adsbygoogle = window.adsbygoogle ?? [];
-  window.adsbygoogle.push({});
 }
 
 export function getStoredGoogleConsent(): GoogleConsentChoice | null {

@@ -38,11 +38,10 @@ Google configuration:
 ```bash
 VITE_GA4_MEASUREMENT_ID=G-XXXXXXXXXX \
 VITE_ADSENSE_CLIENT=ca-pub-XXXXXXXXXXXXXXXX \
-VITE_ADSENSE_SLOT=1234567890 \
 npm run build
 ```
 
-GA4 uses the official Google tag snippet in `index.html`. Production builds default to the configured AdSense publisher. `VITE_ADSENSE_SLOT` is still optional; if it is empty, the page keeps a quiet sponsor slot reserved for a future ad unit.
+GA4 uses the official Google tag snippet in `index.html`. Production builds default to the configured AdSense publisher. The app does not render an in-page ad placeholder.
 
 ## Cloudflare Worker Deployment
 
