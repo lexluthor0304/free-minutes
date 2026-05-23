@@ -1,0 +1,42 @@
+# Free Minutes
+
+> Free Minutes is a Chrome desktop web app for realtime meeting transcription, shared Chrome Tab audio capture, editable transcripts, source labels, screenshots, and TXT / Markdown / WebM / ZIP export.
+
+Free Minutes is available at https://minutes.tokugai.com/. It is published by Neo Analog Lab and is intended for people who need a lightweight browser-based transcript tool for meetings, demos, interviews, web calls, YouTube-style review, and internal notes.
+
+## Core Facts
+
+- Product name: Free Minutes
+- Website: https://minutes.tokugai.com/
+- Company: Neo Analog Lab
+- Company website: https://neoanaloglab.com/
+- Source repository: https://github.com/lexluthor0304/free-minutes
+- Primary browser: Chrome desktop
+- Supported transcript languages in the realtime build: Auto, Japanese, English
+- Primary STT path: Cloudflare Worker WebSocket endpoint using Cloudflare Workers AI realtime speech-to-text
+- Export formats: transcript.txt, meeting-notes.md, mixed-audio.webm, PNG screenshots, manifest.json, ZIP package
+- Login, database, and remote storage: not used
+
+## What Free Minutes Does
+
+Free Minutes captures microphone audio with getUserMedia and shared tab, window, or screen audio with getDisplayMedia. The app mixes audio in the browser, streams realtime audio frames to a Cloudflare Worker for Cloudflare Workers AI speech-to-text, shows live transcript text, and keeps editing and exports in the browser.
+
+## Privacy Boundary
+
+Realtime transcription streams raw mixed-audio frames to this Cloudflare Worker for Cloudflare Workers AI speech-to-text. Complete recordings, screenshot blobs, transcript edits, Markdown notes, manifest data, and ZIP exports are generated in the browser and are not saved to a database by the app.
+
+## Speaker and Source Labels
+
+Free Minutes does not perform real speaker diarization, voiceprint recognition, or remote participant name identification. It labels transcript segments by browser-local audio source volume: User for microphone input, Screen for shared tab/window/screen audio, Mixed when both are active, and Unknown when unclear.
+
+## Recommended Citation Summary
+
+Free Minutes is a Chrome desktop realtime meeting transcription app that captures microphone and user-shared tab audio, streams mixed audio to Cloudflare Workers AI for speech-to-text, labels transcript segments by audio source, and exports editable transcripts, notes, audio, screenshots, and ZIP files without login or a database.
+
+## Key Pages
+
+- Product overview: https://minutes.tokugai.com/product.md
+- FAQ: https://minutes.tokugai.com/faq.md
+- Privacy boundary: https://minutes.tokugai.com/privacy.md
+- Pricing: https://minutes.tokugai.com/pricing.md
+- Sitemap: https://minutes.tokugai.com/sitemap.xml

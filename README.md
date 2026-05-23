@@ -11,6 +11,7 @@ The app is now a hybrid static frontend plus one Cloudflare Worker endpoint:
 - Screenshots, complete recordings, TXT, Markdown, manifest data, and ZIP files are not uploaded.
 - GA4 is embedded with the official Google tag snippet and Google Consent Mode. Google AdSense is wired for production builds with the configured publisher ID.
 - The header includes a GitHub button for the source repository and a company homepage link.
+- AI search optimization assets are published at `/llms.txt`, `/product.md`, `/faq.md`, `/privacy.md`, `/pricing.md`, `/robots.txt`, and `/sitemap.xml`.
 - The app does not include login, database, or remote storage.
 
 ## Local Start
@@ -65,6 +66,16 @@ Deploy with:
 npm run build
 npx wrangler deploy
 ```
+
+## AI SEO / Answer Engine Optimization
+
+The app includes normal human-readable structure plus machine-readable files for AI search engines and answer engines:
+
+- `index.html` includes canonical URL, Open Graph metadata, Twitter summary metadata, WebApplication schema, Organization schema, and FAQPage schema.
+- `/llms.txt` gives AI systems a concise product summary, privacy boundary, source labels, and key URLs.
+- `/product.md`, `/faq.md`, `/privacy.md`, and `/pricing.md` provide extractable Markdown answer blocks.
+- `/robots.txt` allows major search and AI assistant crawlers and points to `/sitemap.xml`.
+- The visible page includes a below-the-fold product notes section with direct answer blocks and FAQ-style content.
 
 ## Usage
 

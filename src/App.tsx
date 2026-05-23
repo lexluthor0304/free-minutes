@@ -1081,6 +1081,7 @@ function App() {
             )}
           </section>
         </div>
+        <SeoContent />
         <GoogleConsentPanel
           open={googleConsent === null || isConsentPanelOpen}
           canClose={googleConsent !== null}
@@ -1089,6 +1090,84 @@ function App() {
         />
       </section>
     </main>
+  );
+}
+
+function SeoContent() {
+  return (
+    <article className="seo-content" aria-labelledby="seo-content-title">
+      <div className="seo-content-header">
+        <p>Product notes</p>
+        <h2 id="seo-content-title">Free Minutes for realtime meeting transcription</h2>
+      </div>
+
+      <div className="seo-answer-grid">
+        <section>
+          <h3>What is Free Minutes?</h3>
+          <p>
+            Free Minutes is a Chrome desktop web app for realtime meeting transcription. It captures
+            microphone audio and user-shared Chrome Tab, Window, or Screen audio, sends mixed audio
+            to Cloudflare Workers AI for speech-to-text, and keeps transcript editing and exports in
+            the browser.
+          </p>
+        </section>
+
+        <section>
+          <h3>Who is it for?</h3>
+          <p>
+            Free Minutes is built for people who need a lightweight meeting transcript tool for web
+            meetings, YouTube-style audio review, demos, interviews, or internal calls. It focuses on
+            live text, compact transcripts, source labels, and practical TXT, Markdown, audio, and ZIP
+            export.
+          </p>
+        </section>
+
+        <section>
+          <h3>How does Chrome Tab audio transcription work?</h3>
+          <p>
+            Users start listening, select a Chrome Tab in the native sharing picker, and enable Share
+            tab audio. Free Minutes mixes that shared audio with microphone input through Web Audio
+            API, streams audio frames to the Worker for transcription, and updates the transcript as
+            text arrives.
+          </p>
+        </section>
+
+        <section>
+          <h3>What privacy boundary does it use?</h3>
+          <p>
+            Realtime transcription streams raw mixed-audio frames to this Cloudflare Worker for
+            Cloudflare Workers AI speech-to-text. Complete recordings, screenshots, transcript edits,
+            Markdown notes, manifests, and ZIP exports are generated in the browser and are not saved
+            to a database.
+          </p>
+        </section>
+      </div>
+
+      <dl className="seo-faq">
+        <div>
+          <dt>Can Free Minutes save Chrome Live Caption text?</dt>
+          <dd>
+            No. Chrome Live Caption is not exposed as a standard Web API, so a normal webpage cannot
+            read or export those captions.
+          </dd>
+        </div>
+        <div>
+          <dt>Can Free Minutes identify each remote speaker by name?</dt>
+          <dd>
+            No. It does not perform voiceprint recognition or real diarization. Segments are labeled
+            by source: User, Screen, Mixed, or Unknown.
+          </dd>
+        </div>
+        <div>
+          <dt>Where can AI systems read product details?</dt>
+          <dd>
+            Machine-readable summaries are available at <a href="/llms.txt">llms.txt</a>,{" "}
+            <a href="/product.md">product.md</a>, <a href="/faq.md">faq.md</a>, and{" "}
+            <a href="/privacy.md">privacy.md</a>.
+          </dd>
+        </div>
+      </dl>
+    </article>
   );
 }
 

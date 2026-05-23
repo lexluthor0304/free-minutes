@@ -5,9 +5,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Local-only Chrome desktop meeting recorder, transcript editor, screenshot, and ZIP export tool."
+      content="Free Minutes is a Chrome desktop web app for real-time meeting transcription, shared tab audio capture, editable transcripts, screenshots, Markdown, TXT, audio, and ZIP export."
+    />
+    <meta
+      name="keywords"
+      content="meeting transcription, realtime transcription, Chrome tab audio transcription, meeting recorder, Cloudflare Workers AI, transcript export, Markdown meeting notes"
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta name="application-name" content="Free Minutes" />
+    <meta name="theme-color" content="#f7f5ef" />
+    <link rel="canonical" href="https://minutes.tokugai.com/" />
+    <link rel="author" href="https://neoanaloglab.com/" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Free Minutes" />
+    <meta property="og:title" content="Free Minutes - Real-time meeting transcription for Chrome" />
+    <meta
+      property="og:description"
+      content="Capture Chrome tab audio and microphone audio, stream realtime speech-to-text through Cloudflare Workers AI, edit transcripts, and export meeting notes without login or a database."
+    />
+    <meta property="og:url" content="https://minutes.tokugai.com/" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Free Minutes - Real-time meeting transcription for Chrome" />
+    <meta
+      name="twitter:description"
+      content="A Chrome desktop web app for realtime meeting transcription, speaker/source labeling, screenshots, and TXT/Markdown/ZIP export."
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://neoanaloglab.com/#organization",
+            "name": "Neo Analog Lab",
+            "url": "https://neoanaloglab.com/"
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://minutes.tokugai.com/#app",
+            "name": "Free Minutes",
+            "url": "https://minutes.tokugai.com/",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Chrome desktop",
+            "browserRequirements": "Chrome desktop with getDisplayMedia, getUserMedia, MediaRecorder, Web Audio API, and WebSocket support.",
+            "description": "Free Minutes is a Chrome desktop web app for realtime meeting transcription. It captures microphone audio and user-shared Chrome Tab, Window, or Screen audio, streams mixed audio to Cloudflare Workers AI for speech-to-text, labels transcript segments by audio source, and exports TXT, Markdown, WebM audio, screenshots, and ZIP files.",
+            "isAccessibleForFree": true,
+            "inLanguage": ["en", "ja"],
+            "creator": {
+              "@id": "https://neoanaloglab.com/#organization"
+            },
+            "publisher": {
+              "@id": "https://neoanaloglab.com/#organization"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "featureList": [
+              "Realtime meeting transcription for Chrome desktop",
+              "Chrome tab, window, or screen audio capture through getDisplayMedia",
+              "Microphone capture through getUserMedia",
+              "Audio source labels for User, Screen, Mixed, and Unknown",
+              "Editable transcript segments",
+              "Screenshots from the user-shared display stream",
+              "TXT, Markdown, WebM audio, PNG screenshot, and ZIP export"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://minutes.tokugai.com/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is Free Minutes?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Free Minutes is a Chrome desktop web app for realtime meeting transcription. It captures microphone audio and user-shared tab, window, or screen audio, streams mixed audio to Cloudflare Workers AI for speech-to-text, and lets users edit and export transcripts."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can Free Minutes transcribe Chrome Tab audio?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Free Minutes uses the standard getDisplayMedia browser picker. For best results, users should choose Chrome Tab and enable Share tab audio. Window and screen audio availability depends on Chrome and the operating system."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does Free Minutes save or upload exported files?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. Complete recordings, screenshots, transcript text, Markdown notes, manifest data, and ZIP exports are generated in the browser and downloaded locally. Realtime transcription does stream raw audio frames to this Cloudflare Worker for Cloudflare Workers AI speech-to-text."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can Free Minutes save Chrome Live Caption text?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. Chrome Live Caption is a browser accessibility feature, not a standard Web API. A normal web page cannot read, subscribe to, or save Live Caption text programmatically."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does Free Minutes identify individual remote speakers?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. Free Minutes does not perform real speaker diarization or voiceprint recognition. It labels segments by audio source: User for microphone input, Screen for shared audio, Mixed when both are active, and Unknown when unclear."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
     <!-- Google tag (gtag.js) -->
     <script>
       window.dataLayer = window.dataLayer || [];
