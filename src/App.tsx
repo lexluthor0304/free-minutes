@@ -22,7 +22,14 @@ import { inferSpeaker, inferSpeakerFromSamples } from "./lib/speaker";
 import { LocalAudioRecorder } from "./lib/recorder";
 import { transcribeWithCloudflareStt } from "./lib/cloudflareStt";
 import { createPcmCapture, type PcmCapture } from "./lib/pcm";
-import { getAdsenseSlotConfig, initializeGoogleSlots, requestAdsenseRender } from "./lib/google";
+import {
+  getAdsenseSlotConfig,
+  getStoredGoogleConsent,
+  initializeGoogleSlots,
+  requestAdsenseRender,
+  setGoogleConsentChoice,
+  type GoogleConsentChoice,
+} from "./lib/google";
 import {
   createVolumeMeter,
   readRmsVolume,
@@ -162,6 +169,10 @@ function App() {
   const [sttState, setSttState] = useState<SttUiState>(initialSttState);
   const [liveSttDebug, setLiveSttDebug] =
     useState<LiveSttDebugState>(initialLiveSttDebug);
+  const [googleConsent, setGoogleConsent] = useState<GoogleConsentChoice | null>(() =>
+    getStoredGoogleConsent(),
+  );
+  const [isConsentPanelOpen, setConsentPanelOpen] = useState(false);
 
   const micStreamRef = useRef<MediaStream | null>(null);
   const displayStreamRef = useRef<MediaStream | null>(null);
@@ -222,6 +233,12 @@ function App() {
 
   const addError = useCallback((message: string) => {
     setErrors((current) => appendUnique(current, message));
+  }, []);
+
+  const handleGoogleConsent = useCallback((choice: GoogleConsentChoice) => {
+    setGoogleConsentChoice(choice);
+    setGoogleConsent(choice);
+    setConsentPanelOpen(false);
   }, []);
 
   const appendTranscriptText = useCallback(
@@ -943,20 +960,25 @@ function App() {
             </span>
             <h1>Free Minutes</h1>
           </div>
-          <label className="focus-language">
-            <span>Language</span>
-            <select
-              value={language}
-              onChange={(event) => setLanguage(event.target.value as LanguageOption)}
-              disabled={isCapturing}
-            >
-              {LANGUAGE_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="focus-header-actions">
+            <button type="button" className="focus-privacy" onClick={() => setConsentPanelOpen(true)}>
+              Privacy
+            </button>
+            <label className="focus-language">
+              <span>Language</span>
+              <select
+                value={language}
+                onChange={(event) => setLanguage(event.target.value as LanguageOption)}
+                disabled={isCapturing}
+              >
+                {LANGUAGE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </header>
 
         <div className="focus-layout">
@@ -985,7 +1007,7 @@ function App() {
             </p>
 
             <FocusMessages errors={errors} warnings={warnings} />
-            <GoogleAdSlot />
+            <GoogleAdSlot consent={googleConsent} />
           </section>
 
           <section className="focus-transcript" aria-label="Transcript">
@@ -1033,13 +1055,19 @@ function App() {
             )}
           </section>
         </div>
+        <GoogleConsentPanel
+          open={googleConsent === null || isConsentPanelOpen}
+          canClose={googleConsent !== null}
+          onChoose={handleGoogleConsent}
+          onClose={() => setConsentPanelOpen(false)}
+        />
       </section>
     </main>
   );
 }
 
-function GoogleAdSlot() {
-  const config = getAdsenseSlotConfig();
+function GoogleAdSlot(props: { consent: GoogleConsentChoice | null }) {
+  const config = getAdsenseSlotConfig(props.consent);
 
   useEffect(() => {
     if (!config.enabled) {
@@ -1062,6 +1090,36 @@ function GoogleAdSlot() {
       ) : (
         <span>Sponsored</span>
       )}
+    </aside>
+  );
+}
+
+function GoogleConsentPanel(props: {
+  open: boolean;
+  canClose: boolean;
+  onChoose: (choice: GoogleConsentChoice) => void;
+  onClose: () => void;
+}) {
+  if (!props.open) {
+    return null;
+  }
+
+  return (
+    <aside className="focus-consent" role="dialog" aria-label="Privacy choices">
+      <p>Allow analytics and ads?</p>
+      <div>
+        <button type="button" className="focus-consent-primary" onClick={() => props.onChoose("granted")}>
+          Allow
+        </button>
+        <button type="button" onClick={() => props.onChoose("denied")}>
+          Decline
+        </button>
+        {props.canClose ? (
+          <button type="button" className="focus-consent-close" onClick={props.onClose}>
+            Close
+          </button>
+        ) : null}
+      </div>
     </aside>
   );
 }

@@ -9,7 +9,7 @@ The app is now a hybrid static frontend plus one Cloudflare Worker endpoint:
 - Live transcription streams raw mixed-audio PCM frames to Cloudflare Workers AI Deepgram Nova-3.
 - `/api/transcribe` remains as a fallback and sends short WAV chunks to Whisper large v3 turbo if the realtime WebSocket is unavailable.
 - Screenshots, complete recordings, TXT, Markdown, manifest data, and ZIP files are not uploaded.
-- GA4 and Google AdSense are reserved but disabled by default. No Google script is loaded unless the build-time environment variables are set.
+- GA4 is embedded with the official Google tag snippet and Google Consent Mode. Google AdSense is wired for production builds with the configured publisher ID.
 - The app does not include login, database, or remote storage.
 
 ## Local Start
@@ -29,7 +29,7 @@ npm run build
 
 The build output is written to `dist/`.
 
-Optional Google placeholders:
+Google configuration:
 
 ```bash
 VITE_GA4_MEASUREMENT_ID=G-XXXXXXXXXX \
@@ -38,7 +38,7 @@ VITE_ADSENSE_SLOT=1234567890 \
 npm run build
 ```
 
-If these values are empty, GA4 and AdSense remain inactive. The page keeps a quiet bottom sponsor slot reserved for future AdSense.
+GA4 uses the official Google tag snippet in `index.html`. Production builds default to the configured AdSense publisher. `VITE_ADSENSE_SLOT` is still optional; if it is empty, the page keeps a quiet sponsor slot reserved for a future ad unit.
 
 ## Cloudflare Worker Deployment
 
@@ -84,8 +84,8 @@ npx wrangler deploy
 - ZIP files are generated in the browser with JSZip.
 - Live STT uploads raw mixed-audio PCM frames to this Cloudflare Worker, which calls Cloudflare Workers AI.
 - Exported audio files, screenshots, transcript text, meeting notes, manifest data, and ZIP files are not uploaded by the export features.
-- GA4 and AdSense are not loaded unless `VITE_GA4_MEASUREMENT_ID`, `VITE_ADSENSE_CLIENT`, and `VITE_ADSENSE_SLOT` are configured before build.
-- The app avoids `localStorage`; session data is kept in memory and is cleared by refresh or `Clear Session`.
+- GA4 loads through the official Google tag snippet with Consent Mode defaulting analytics and ads storage to denied until the user chooses.
+- The app uses `localStorage` only to remember the Google consent choice. Session data is kept in memory and is cleared by refresh or `Clear Session`.
 
 ## Cloudflare Realtime STT
 
