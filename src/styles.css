@@ -864,6 +864,64 @@ input[type="range"] {
   font-size: 13px;
 }
 
+.focus-notes {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  border: 1px solid #e4ddcf;
+  border-radius: 12px;
+  background: #fffdf8;
+  padding: 10px;
+}
+
+.focus-notes-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.focus-notes-top span {
+  color: #66707a;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.focus-notes-top button {
+  min-height: 30px;
+  border-color: #ded6c8;
+  border-radius: 999px;
+  background: transparent;
+  color: #5b646d;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.focus-prompt {
+  color: #5b646d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.focus-prompt summary {
+  cursor: pointer;
+}
+
+.focus-prompt textarea,
+.focus-notes-output {
+  margin-top: 8px;
+  border-color: #e4ddcf;
+  background: #fbfaf6;
+  padding: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.focus-notes-output {
+  margin-top: 0;
+}
+
 .focus-transcript-list {
   display: grid;
   gap: 6px;

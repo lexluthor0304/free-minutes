@@ -10,6 +10,7 @@ type ExportTextOptions = {
   createdAt: Date;
   screenshots: ScreenshotItem[];
   segments: TranscriptSegment[];
+  meetingNotes?: string;
 };
 
 export function generateTranscriptTxt(options: ExportTextOptions): string {
@@ -48,25 +49,31 @@ export function generateTranscriptTxt(options: ExportTextOptions): string {
 }
 
 export function generateMeetingMarkdown(options: ExportTextOptions): string {
+  const meetingNotes = options.meetingNotes?.trim();
   const lines = [
     "# Meeting Notes",
     "",
     `Language: ${options.language}`,
     `Created: ${formatDateTime(options.createdAt)}`,
     "",
-    "## Summary",
-    "",
-    "_To be filled manually._",
-    "",
-    "## Action Items",
-    "",
-    "- [ ] _To be filled manually._",
-    "",
-    "## Screenshots",
-    "",
-    "| Time | File |",
-    "|---|---|",
   ];
+
+  if (meetingNotes) {
+    lines.push(meetingNotes, "");
+  } else {
+    lines.push(
+      "## Summary",
+      "",
+      "_To be filled manually._",
+      "",
+      "## Action Items",
+      "",
+      "- [ ] _To be filled manually._",
+      "",
+    );
+  }
+
+  lines.push("## Screenshots", "", "| Time | File |", "|---|---|");
 
   if (options.screenshots.length) {
     for (const screenshot of options.screenshots) {

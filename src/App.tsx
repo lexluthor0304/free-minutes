@@ -22,6 +22,11 @@ import { inferSpeaker, inferSpeakerFromSamples } from "./lib/speaker";
 import { LocalAudioRecorder } from "./lib/recorder";
 import { transcribeWithCloudflareStt } from "./lib/cloudflareStt";
 import { createPcmCapture, type PcmCapture } from "./lib/pcm";
+import {
+  DEFAULT_MEETING_NOTES_PROMPT,
+  generateMeetingNotesWithChromeAi,
+  type MeetingNotesResult,
+} from "./lib/chromeAi";
 import { initializeGithubButtons } from "./lib/github";
 import {
   getAdsenseSlotConfig,
@@ -104,6 +109,13 @@ type LiveSttDebugState = {
   lastError: string | null;
 };
 
+type NotesUiState = {
+  status: "idle" | "generating" | "done" | "error";
+  message: string;
+  engine: MeetingNotesResult["engine"] | null;
+  customPromptUsed: boolean;
+};
+
 type ParsedRealtimeSegment = {
   text: string;
   startTime?: number;
@@ -153,6 +165,13 @@ const initialLiveSttDebug: LiveSttDebugState = {
   lastError: null,
 };
 
+const initialNotesState: NotesUiState = {
+  status: "idle",
+  message: "Generate notes after transcript text appears.",
+  engine: null,
+  customPromptUsed: false,
+};
+
 function App() {
   const [language, setLanguage] = useState<LanguageOption>("Auto");
   const [segmentInterval, setSegmentInterval] = useState(30);
@@ -177,6 +196,9 @@ function App() {
   const [sttState, setSttState] = useState<SttUiState>(initialSttState);
   const [liveSttDebug, setLiveSttDebug] =
     useState<LiveSttDebugState>(initialLiveSttDebug);
+  const [meetingNotes, setMeetingNotes] = useState("");
+  const [notesPrompt, setNotesPrompt] = useState(DEFAULT_MEETING_NOTES_PROMPT);
+  const [notesState, setNotesState] = useState<NotesUiState>(initialNotesState);
   const [googleConsent, setGoogleConsent] = useState<GoogleConsentChoice | null>(() =>
     getStoredGoogleConsent(),
   );
@@ -210,6 +232,7 @@ function App() {
   const segmentsRef = useRef<TranscriptSegment[]>(segments);
   const screenshotsRef = useRef<ScreenshotItem[]>(screenshots);
   const sttInterimTextRef = useRef("");
+  const notesAbortRef = useRef<AbortController | null>(null);
   const githubButtonRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
@@ -682,6 +705,7 @@ function App() {
 
   useEffect(() => {
     return () => {
+      notesAbortRef.current?.abort();
       if (volumeTimerRef.current !== null) {
         window.clearInterval(volumeTimerRef.current);
       }
@@ -905,6 +929,76 @@ function App() {
     });
   }, []);
 
+  const handleGenerateNotes = useCallback(async () => {
+    const transcriptSegmentsForNotes = segments.filter((segment) => segment.text.trim());
+    if (!transcriptSegmentsForNotes.length) {
+      addWarning("Transcript is empty. Start listening before generating notes.");
+      return;
+    }
+
+    notesAbortRef.current?.abort();
+    const controller = new AbortController();
+    notesAbortRef.current = controller;
+    setNotesState({
+      status: "generating",
+      message: "Preparing local notes.",
+      engine: null,
+      customPromptUsed: false,
+    });
+
+    try {
+      const result = await generateMeetingNotesWithChromeAi({
+        language,
+        prompt: notesPrompt,
+        segments: transcriptSegmentsForNotes,
+        signal: controller.signal,
+        onStatus: (message) =>
+          setNotesState((current) => ({
+            ...current,
+            message,
+          })),
+      });
+      setMeetingNotes(result.text);
+      setNotesState({
+        status: "done",
+        message: result.customPromptUsed
+          ? "Notes generated locally with your prompt."
+          : "Notes generated locally with Chrome Summarizer.",
+        engine: result.engine,
+        customPromptUsed: result.customPromptUsed,
+      });
+      if (!result.customPromptUsed) {
+        addWarning("Chrome Prompt API is unavailable, so custom prompt was not used.");
+      }
+    } catch (error) {
+      if (controller.signal.aborted) {
+        setNotesState({
+          status: "idle",
+          message: "Notes generation stopped.",
+          engine: null,
+          customPromptUsed: false,
+        });
+        return;
+      }
+      const message = describeError(error);
+      setNotesState({
+        status: "error",
+        message,
+        engine: null,
+        customPromptUsed: false,
+      });
+      addWarning(`Notes generation unavailable: ${message}`);
+    } finally {
+      if (notesAbortRef.current === controller) {
+        notesAbortRef.current = null;
+      }
+    }
+  }, [addWarning, language, notesPrompt, segments]);
+
+  const handleStopNotes = useCallback(() => {
+    notesAbortRef.current?.abort();
+  }, []);
+
   const handleDownloadTxt = useCallback(() => {
     downloadText(
       generateTranscriptTxt({
@@ -925,11 +1019,12 @@ function App() {
         createdAt: new Date(),
         screenshots,
         segments,
+        meetingNotes,
       }),
       "meeting-notes.md",
       "text/markdown;charset=utf-8",
     );
-  }, [language, screenshots, segments]);
+  }, [language, meetingNotes, screenshots, segments]);
 
   const handleDownloadZip = useCallback(async () => {
     setIsExporting(true);
@@ -939,6 +1034,7 @@ function App() {
         audioBlob,
         screenshots,
         segments,
+        meetingNotes,
       });
       downloadBlob(result.blob, result.filename);
     } catch (error) {
@@ -946,9 +1042,10 @@ function App() {
     } finally {
       setIsExporting(false);
     }
-  }, [addError, audioBlob, language, screenshots, segments]);
+  }, [addError, audioBlob, language, meetingNotes, screenshots, segments]);
 
   const handleClearSession = useCallback(() => {
+    notesAbortRef.current?.abort();
     setSegments([]);
     setAudioBlob(null);
     if (audioBlobUrl) {
@@ -962,6 +1059,8 @@ function App() {
       return [];
     });
     setElapsedTime(0);
+    setMeetingNotes("");
+    setNotesState(initialNotesState);
     setErrors([]);
     setWarnings([]);
   }, [audioBlobUrl]);
@@ -974,6 +1073,7 @@ function App() {
     sttState.interimText.trim() ||
     transcriptSegments[transcriptSegments.length - 1]?.text.trim() ||
     (isCapturing ? "Listening..." : "Start listening when you are ready.");
+  const isGeneratingNotes = notesState.status === "generating";
 
   return (
     <main className={`focus-shell ${isCapturing ? "is-listening" : ""}`}>
@@ -1016,6 +1116,7 @@ function App() {
             <label className="focus-language">
               <span>Language</span>
               <select
+                name="language"
                 value={language}
                 onChange={(event) => setLanguage(event.target.value as LanguageOption)}
                 disabled={isCapturing}
@@ -1063,6 +1164,13 @@ function App() {
             <div className="focus-transcript-head">
               <h2>Transcript</h2>
               <div>
+                <button
+                  type="button"
+                  onClick={handleGenerateNotes}
+                  disabled={!transcriptSegments.length || isGeneratingNotes}
+                >
+                  {isGeneratingNotes ? "Notes..." : "Notes"}
+                </button>
                 <button type="button" onClick={handleDownloadTxt} disabled={!transcriptSegments.length}>
                   TXT
                 </button>
@@ -1078,6 +1186,37 @@ function App() {
               </div>
             </div>
 
+            <section className="focus-notes" aria-label="Meeting notes">
+              <div className="focus-notes-top">
+                <span>{notesState.message}</span>
+                {isGeneratingNotes ? (
+                  <button type="button" onClick={handleStopNotes}>
+                    Stop
+                  </button>
+                ) : null}
+              </div>
+              <details className="focus-prompt">
+                <summary>Prompt</summary>
+                <textarea
+                  name="meeting-notes-prompt"
+                  value={notesPrompt}
+                  onChange={(event) => setNotesPrompt(event.target.value)}
+                  rows={6}
+                  aria-label="Custom notes prompt"
+                />
+              </details>
+              {meetingNotes ? (
+                <textarea
+                  className="focus-notes-output"
+                  name="meeting-notes-output"
+                  value={meetingNotes}
+                  onChange={(event) => setMeetingNotes(event.target.value)}
+                  rows={8}
+                  aria-label="Meeting notes"
+                />
+              ) : null}
+            </section>
+
             {transcriptSegments.length ? (
               <div className="focus-transcript-list">
                 {transcriptSegments.map((segment) => (
@@ -1089,6 +1228,7 @@ function App() {
                       </small>
                     </div>
                     <textarea
+                      name={`transcript-${segment.id}`}
                       value={segment.text}
                       onChange={(event) =>
                         setSegments((current) => updateSegmentText(current, segment.id, event.target.value))
@@ -1141,7 +1281,8 @@ function SeoContent() {
             Free Minutes is built for people who need a lightweight meeting transcript tool for web
             meetings, YouTube-style audio review, demos, interviews, or internal calls. It focuses on
             live text, compact transcripts, source labels, anonymous speaker numbers when available,
-            and practical TXT, Markdown, audio, and ZIP export.
+            browser-local notes when Chrome supports them, and practical TXT, Markdown, audio, and
+            ZIP export.
           </p>
         </section>
 
@@ -1159,9 +1300,10 @@ function SeoContent() {
           <h3>What privacy boundary does it use?</h3>
           <p>
             Realtime transcription streams raw mixed-audio frames to this Cloudflare Worker for
-            Cloudflare Workers AI speech-to-text. Complete recordings, screenshots, transcript edits,
-            Markdown notes, manifests, and ZIP exports are generated in the browser and are not saved
-            to a database.
+            Cloudflare Workers AI speech-to-text. Meeting-note generation runs in Chrome when
+            built-in AI is available. Complete recordings, screenshots, transcript edits, Markdown
+            notes, manifests, and ZIP exports are generated in the browser and are not saved to a
+            database.
           </p>
         </section>
       </div>
@@ -1172,6 +1314,14 @@ function SeoContent() {
           <dd>
             No. Chrome Live Caption is not exposed as a standard Web API, so a normal webpage cannot
             read or export those captions.
+          </dd>
+        </div>
+        <div>
+          <dt>Can I use my own meeting-notes prompt?</dt>
+          <dd>
+            Yes, when Chrome's built-in Prompt API is available. The prompt runs with Chrome
+            Built-in AI in the browser. If only Summarizer is available, Free Minutes can generate a
+            local summary without using the custom prompt.
           </dd>
         </div>
         <div>
@@ -1392,6 +1542,7 @@ function TranscriptEditor(props: {
                 </select>
               </div>
               <textarea
+                name={`transcript-editor-${segment.id}`}
                 value={segment.text}
                 onChange={(event) => props.onTextChange(segment.id, event.target.value)}
                 placeholder="Edit transcript text locally..."

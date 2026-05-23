@@ -12,6 +12,12 @@ When listening is active, Free Minutes streams raw mixed-audio frames to its Clo
 
 The app does not save complete recordings, screenshots, transcript edits, Markdown notes, manifest data, or ZIP exports to a database. These files are generated in the browser and downloaded by the user.
 
+## Browser-Local Meeting Notes
+
+When Chrome Built-in AI is available, Free Minutes can generate meeting notes from the transcript in the browser with Gemini Nano. Users can edit the prompt. This notes feature does not send the transcript to the app's Cloudflare Worker.
+
+Chrome may download or update its local built-in AI model the first time this feature is used. That model download is managed by Chrome; Free Minutes does not upload the transcript for notes generation.
+
 ## Browser APIs Used
 
 - getUserMedia for microphone audio.
@@ -19,6 +25,7 @@ The app does not save complete recordings, screenshots, transcript edits, Markdo
 - Web Audio API for audio mixing and source volume analysis.
 - MediaRecorder for WebM audio recording.
 - Canvas for PNG screenshots from the shared video track.
+- Chrome Built-in AI for optional browser-local meeting notes when available.
 - JSZip for browser-local ZIP packaging.
 
 ## Consent and External Scripts

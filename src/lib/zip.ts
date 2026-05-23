@@ -15,6 +15,7 @@ export async function exportMeetingZip(options: {
   audioBlob: Blob | null;
   screenshots: ScreenshotItem[];
   segments: TranscriptSegment[];
+  meetingNotes?: string;
 }): Promise<{ blob: Blob; filename: string }> {
   /*
    * JSZip runs entirely in the browser here. No audio, screenshots, transcript,
@@ -30,6 +31,7 @@ export async function exportMeetingZip(options: {
       createdAt: exportedAt,
       screenshots: options.screenshots,
       segments: options.segments,
+      meetingNotes: options.meetingNotes,
     }),
   );
   zip.file(

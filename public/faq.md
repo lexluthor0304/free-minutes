@@ -26,6 +26,10 @@ Free Minutes does not identify individual remote speakers by name and does not p
 
 Free Minutes exports transcript.txt, meeting-notes.md, mixed-audio.webm, PNG screenshots, manifest.json, and ZIP packages. Markdown export includes transcript timestamps, speaker/source labels, screenshot paths, summary placeholders, and action item placeholders.
 
+## Can I use my own prompt for meeting notes?
+
+Yes, when Chrome's built-in Prompt API is available. Free Minutes lets users edit the notes prompt and runs it with Chrome Built-in AI / Gemini Nano in the browser. If only Chrome Summarizer is available, Free Minutes can still generate a summary, but the custom prompt may not be used.
+
 ## Does Free Minutes require a login?
 
 No. Free Minutes does not include user accounts, login, a database, or remote save functionality.

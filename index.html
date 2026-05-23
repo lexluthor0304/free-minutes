@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Free Minutes is a Chrome desktop web app for real-time meeting transcription, shared tab audio capture, editable transcripts, screenshots, Markdown, TXT, audio, and ZIP export."
+      content="Free Minutes is a Chrome desktop web app for real-time meeting transcription, shared tab audio capture, editable transcripts, browser-local meeting notes, screenshots, Markdown, TXT, audio, and ZIP export."
     />
     <meta
       name="keywords"
@@ -51,7 +51,7 @@
             "applicationCategory": "BusinessApplication",
             "operatingSystem": "Chrome desktop",
             "browserRequirements": "Chrome desktop with getDisplayMedia, getUserMedia, MediaRecorder, Web Audio API, and WebSocket support.",
-            "description": "Free Minutes is a Chrome desktop web app for realtime meeting transcription. It captures microphone audio and user-shared Chrome Tab, Window, or Screen audio, streams mixed audio to Cloudflare Workers AI for speech-to-text with best-effort anonymous diarization, labels transcript segments by audio source, and exports TXT, Markdown, WebM audio, screenshots, and ZIP files.",
+            "description": "Free Minutes is a Chrome desktop web app for realtime meeting transcription. It captures microphone audio and user-shared Chrome Tab, Window, or Screen audio, streams mixed audio to Cloudflare Workers AI for speech-to-text with best-effort anonymous diarization, generates browser-local meeting notes with Chrome Built-in AI when available, labels transcript segments by audio source, and exports TXT, Markdown, WebM audio, screenshots, and ZIP files.",
             "isAccessibleForFree": true,
             "inLanguage": ["en", "ja"],
             "creator": {
@@ -71,6 +71,7 @@
               "Microphone capture through getUserMedia",
               "Audio source labels for User, Screen, Mixed, and Unknown",
               "Best-effort anonymous diarization labels such as Speaker 0 or Speaker 1 when returned by Nova-3",
+              "Browser-local meeting notes with an editable prompt through Chrome Built-in AI when available",
               "Editable transcript segments",
               "Screenshots from the user-shared display stream",
               "TXT, Markdown, WebM audio, PNG screenshot, and ZIP export"
@@ -102,6 +103,14 @@
                 "acceptedAnswer": {
                   "@type": "Answer",
                   "text": "No. Complete recordings, screenshots, transcript text, Markdown notes, manifest data, and ZIP exports are generated in the browser and downloaded locally. Realtime transcription does stream raw audio frames to this Cloudflare Worker for Cloudflare Workers AI speech-to-text."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can users write their own prompt for meeting notes?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, when Chrome's built-in Prompt API is available. Free Minutes lets users edit the notes prompt and runs it with Chrome Built-in AI / Gemini Nano in the browser. If only Chrome Summarizer is available, the app can generate a summary but may not use the custom prompt."
                 }
               },
               {

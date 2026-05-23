@@ -9,6 +9,7 @@ The app is now a hybrid static frontend plus one Cloudflare Worker endpoint:
 - Live transcription streams raw mixed-audio PCM frames to Cloudflare Workers AI Deepgram Nova-3.
 - Nova-3 realtime STT is requested with anonymous best-effort diarization, so transcript segments can include labels such as `Speaker 0` when the model returns speaker numbers.
 - `/api/transcribe` remains as a fallback and sends short WAV chunks to Whisper large v3 turbo if the realtime WebSocket is unavailable.
+- Meeting notes can be generated with Chrome Built-in AI / Gemini Nano when the user's Chrome and device support it. The prompt is editable, and the notes are generated in the browser.
 - Screenshots, complete recordings, TXT, Markdown, manifest data, and ZIP files are not uploaded.
 - GA4 is embedded with the official Google tag snippet and Google Consent Mode. Google AdSense is wired for production builds with the configured publisher ID.
 - The header includes a GitHub button for the source repository and a company homepage link.
@@ -87,7 +88,8 @@ The app includes normal human-readable structure plus machine-readable files for
 5. Allow microphone permission.
 6. While recording, the app streams mixed-audio PCM frames to `/api/realtime-transcribe` about every 250 ms and displays interim text as it arrives.
 7. Click `Stop`.
-8. Edit the transcript if needed, then download TXT, Markdown, audio, or ZIP.
+8. Click `Notes` to generate browser-local meeting notes. Expand `Prompt` to use your own instruction.
+9. Edit the transcript or notes if needed, then download TXT, Markdown, audio, or ZIP.
 
 ## Privacy Boundary
 
@@ -96,6 +98,7 @@ The app includes normal human-readable structure plus machine-readable files for
 - Screenshots are generated in the browser with HTMLVideoElement and Canvas.
 - ZIP files are generated in the browser with JSZip.
 - Live STT uploads raw mixed-audio PCM frames to this Cloudflare Worker, which calls Cloudflare Workers AI.
+- Meeting-note generation uses Chrome Built-in AI / Gemini Nano when available. The transcript is processed by the browser-local model and is not sent to this app's Worker for notes generation.
 - Exported audio files, screenshots, transcript text, meeting notes, manifest data, and ZIP files are not uploaded by the export features.
 - GA4 loads through the official Google tag snippet with Consent Mode defaulting analytics and ads storage to denied until the user chooses.
 - The GitHub button loads the GitHub Buttons script for the visible repository button. The company homepage link only navigates when clicked.
@@ -129,6 +132,17 @@ env.AI.run("@cf/openai/whisper-large-v3-turbo", {
 ```
 
 Realtime STT can show interim text before final segments. Latency depends on WebSocket connection quality, audio quality, Workers AI availability, and model processing time.
+
+## Chrome Built-in AI Meeting Notes
+
+The `Notes` button attempts to use Chrome Built-in AI in the browser:
+
+- It first tries the Prompt API through `LanguageModel`, which supports the user's custom prompt.
+- If the Prompt API is unavailable but the Summarizer API is available, it falls back to a browser-generated summary and warns that the custom prompt was not used.
+- Long transcripts are summarized in chunks and then combined.
+- Generated notes are editable and are written into `meeting-notes.md` and ZIP export.
+
+Chrome Built-in AI is device- and version-dependent. It may require model download, enough local disk space, supported hardware, and Chrome flags or origin-trial availability depending on the user's Chrome version. It does not replace speech-to-text; it only summarizes transcript text that already exists.
 
 ## Chrome Browser Limits
 
@@ -223,6 +237,7 @@ The app does not call any external LLM for semantic segmentation.
 TXT export includes created timestamp, language, screenshot timestamps and relative paths, transcript segment timestamps, and speaker/source labels.
 
 Markdown export includes title, language, created timestamp, Summary placeholder, Action Items placeholder, Screenshots table, Transcript section, segment timestamps, and speaker/source labels.
+If browser-local meeting notes have been generated, Markdown export uses those notes in the Summary section.
 
 `manifest.json` includes app name, export timestamp, language, filenames, screenshot metadata, and segment metadata.
 
@@ -233,6 +248,7 @@ Markdown export includes title, language, created timestamp, Summary placeholder
 - Live STT uploads raw audio frames to Cloudflare, so it is not local-only transcription.
 - Chinese realtime STT is intentionally not included in this build.
 - STT latency and accuracy depend on Workers AI behavior and source audio quality.
+- Chrome Built-in AI meeting notes depend on the user's Chrome version, local model availability, and device capability.
 - Screenshots require an active shared video track.
 - Segment speaker inference is volume-based and approximate.
 - Long recordings and many screenshots consume browser memory until refresh or manual clearing.
@@ -240,5 +256,6 @@ Markdown export includes title, language, created timestamp, Summary placeholder
 ## Future Options
 
 - Add a user-selectable local Whisper/WebGPU path if browser-local ASR becomes stable enough.
-- Add a local NLP model or local LLM for semantic segmentation and meeting-note summarization.
+- Improve local meeting-note generation as Chrome Built-in AI APIs stabilize.
+- Add a local NLP model or local LLM for semantic segmentation.
 - Add an explicit mode switch between local-only capture/export and cloud STT transcription.
