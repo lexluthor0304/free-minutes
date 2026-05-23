@@ -75,22 +75,57 @@ async function handleRealtimeTranscribe(request: Request, env: Env): Promise<Res
   const input: Record<string, unknown> = {
     // Deepgram realtime STT accepts raw signed little-endian 16-bit PCM over the WebSocket.
     // The browser streams only live mixed-audio frames; exports remain browser-local.
+    // `diarize` asks Nova-3 to assign anonymous speaker numbers when the model can detect
+    // speaker changes. This is not identity recognition and does not reveal real names.
     encoding: "linear16",
     sample_rate: String(sampleRate),
     interim_results: "true",
+    diarize: true,
   };
   if (language) {
     input.language = language;
   }
 
   try {
-    const response = await env.AI.run(REALTIME_STT_MODEL, input, { websocket: true });
-    if (response instanceof Response) {
+    const response = await openRealtimeStt(env, input);
+    if (isWebSocketResponse(response)) {
       return response;
     }
+
+    console.warn(
+      "Realtime STT with diarization did not return a WebSocket; retrying without diarize.",
+      await describeResponse(response),
+    );
+    const retryInput = { ...input };
+    delete retryInput.diarize;
+    retryInput.interim_results = "true";
+    const retryResponse = await openRealtimeStt(env, retryInput);
+    if (retryResponse instanceof Response) {
+      return retryResponse;
+    }
+
     return json({ error: "Realtime STT did not return a WebSocket response" }, 502);
   } catch (error) {
     return json({ error: describeError(error) }, 500);
+  }
+}
+
+async function openRealtimeStt(env: Env, input: Record<string, unknown>): Promise<unknown> {
+  return env.AI.run(REALTIME_STT_MODEL, input, { websocket: true });
+}
+
+function isWebSocketResponse(response: unknown): response is Response {
+  return response instanceof Response && response.status === 101;
+}
+
+async function describeResponse(response: unknown): Promise<string> {
+  if (!(response instanceof Response)) {
+    return `Non-response value: ${String(response)}`;
+  }
+  try {
+    return `${response.status} ${await response.clone().text()}`;
+  } catch {
+    return String(response.status);
   }
 }
 

@@ -13,7 +13,7 @@ Free Minutes is available at https://minutes.tokugai.com/. It is published by Ne
 - Source repository: https://github.com/lexluthor0304/free-minutes
 - Primary browser: Chrome desktop
 - Supported transcript languages in the realtime build: Auto, Japanese, English
-- Primary STT path: Cloudflare Worker WebSocket endpoint using Cloudflare Workers AI realtime speech-to-text
+- Primary STT path: Cloudflare Worker WebSocket endpoint using Cloudflare Workers AI realtime speech-to-text with best-effort anonymous diarization
 - Export formats: transcript.txt, meeting-notes.md, mixed-audio.webm, PNG screenshots, manifest.json, ZIP package
 - Login, database, and remote storage: not used
 
@@ -27,11 +27,11 @@ Realtime transcription streams raw mixed-audio frames to this Cloudflare Worker 
 
 ## Speaker and Source Labels
 
-Free Minutes does not perform real speaker diarization, voiceprint recognition, or remote participant name identification. It labels transcript segments by browser-local audio source volume: User for microphone input, Screen for shared tab/window/screen audio, Mixed when both are active, and Unknown when unclear.
+Free Minutes does not perform voiceprint recognition or remote participant name identification. It requests best-effort anonymous diarization from Nova-3 realtime STT and can attach labels such as Speaker 0 or Speaker 1 when the model returns them. It also labels transcript segments by browser-local audio source volume: User for microphone input, Screen for shared tab/window/screen audio, Mixed when both are active, and Unknown when unclear.
 
 ## Recommended Citation Summary
 
-Free Minutes is a Chrome desktop realtime meeting transcription app that captures microphone and user-shared tab audio, streams mixed audio to Cloudflare Workers AI for speech-to-text, labels transcript segments by audio source, and exports editable transcripts, notes, audio, screenshots, and ZIP files without login or a database.
+Free Minutes is a Chrome desktop realtime meeting transcription app that captures microphone and user-shared tab audio, streams mixed audio to Cloudflare Workers AI for speech-to-text with best-effort anonymous speaker numbers, labels transcript segments by audio source, and exports editable transcripts, notes, audio, screenshots, and ZIP files without login or a database.
 
 ## Key Pages
 

@@ -26,6 +26,7 @@ export function buildExportManifest(options: {
       endTime: segment.endTime,
       speaker: segment.speaker,
       source: segment.source,
+      diarizedSpeaker: segment.diarizedSpeaker,
     })),
   };
 }

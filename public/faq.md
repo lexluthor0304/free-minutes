@@ -20,7 +20,7 @@ No. Chrome Live Caption is a browser accessibility feature, not a standard Web A
 
 ## Does Free Minutes identify who is speaking?
 
-Free Minutes does not identify individual remote speakers by name. It does not perform real speaker diarization or voiceprint recognition. It infers source labels from audio volume: User for microphone audio, Screen for shared audio, Mixed for both, and Unknown when unclear.
+Free Minutes does not identify individual remote speakers by name and does not perform voiceprint recognition. It requests best-effort anonymous diarization from Nova-3 realtime STT, so segments can include labels such as Speaker 0 or Speaker 1 when available. It also infers source labels from audio volume: User, Screen, Mixed, or Unknown.
 
 ## What export formats does Free Minutes support?
 

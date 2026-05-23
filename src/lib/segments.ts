@@ -83,6 +83,7 @@ export function updateSegmentSpeaker(
           ...segment,
           speaker,
           source: sourceFromSpeaker(speaker),
+          diarizedSpeaker: undefined,
         }
       : segment,
   );

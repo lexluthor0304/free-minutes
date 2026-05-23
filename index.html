@@ -51,7 +51,7 @@
             "applicationCategory": "BusinessApplication",
             "operatingSystem": "Chrome desktop",
             "browserRequirements": "Chrome desktop with getDisplayMedia, getUserMedia, MediaRecorder, Web Audio API, and WebSocket support.",
-            "description": "Free Minutes is a Chrome desktop web app for realtime meeting transcription. It captures microphone audio and user-shared Chrome Tab, Window, or Screen audio, streams mixed audio to Cloudflare Workers AI for speech-to-text, labels transcript segments by audio source, and exports TXT, Markdown, WebM audio, screenshots, and ZIP files.",
+            "description": "Free Minutes is a Chrome desktop web app for realtime meeting transcription. It captures microphone audio and user-shared Chrome Tab, Window, or Screen audio, streams mixed audio to Cloudflare Workers AI for speech-to-text with best-effort anonymous diarization, labels transcript segments by audio source, and exports TXT, Markdown, WebM audio, screenshots, and ZIP files.",
             "isAccessibleForFree": true,
             "inLanguage": ["en", "ja"],
             "creator": {
@@ -70,6 +70,7 @@
               "Chrome tab, window, or screen audio capture through getDisplayMedia",
               "Microphone capture through getUserMedia",
               "Audio source labels for User, Screen, Mixed, and Unknown",
+              "Best-effort anonymous diarization labels such as Speaker 0 or Speaker 1 when returned by Nova-3",
               "Editable transcript segments",
               "Screenshots from the user-shared display stream",
               "TXT, Markdown, WebM audio, PNG screenshot, and ZIP export"
@@ -116,7 +117,7 @@
                 "name": "Does Free Minutes identify individual remote speakers?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "No. Free Minutes does not perform real speaker diarization or voiceprint recognition. It labels segments by audio source: User for microphone input, Screen for shared audio, Mixed when both are active, and Unknown when unclear."
+                  "text": "No. Free Minutes does not identify remote speakers by real name and does not perform voiceprint recognition. It can attach best-effort anonymous speaker numbers from Nova-3 realtime STT and also labels segments by audio source: User, Screen, Mixed, or Unknown."
                 }
               }
             ]

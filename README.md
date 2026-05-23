@@ -7,6 +7,7 @@ The app is now a hybrid static frontend plus one Cloudflare Worker endpoint:
 - The browser handles capture, audio mixing, recording, screenshots, transcript editing, file export, and ZIP generation.
 - `/api/realtime-transcribe` runs in the Cloudflare Worker and opens a Workers AI realtime STT WebSocket.
 - Live transcription streams raw mixed-audio PCM frames to Cloudflare Workers AI Deepgram Nova-3.
+- Nova-3 realtime STT is requested with anonymous best-effort diarization, so transcript segments can include labels such as `Speaker 0` when the model returns speaker numbers.
 - `/api/transcribe` remains as a fallback and sends short WAV chunks to Whisper large v3 turbo if the realtime WebSocket is unavailable.
 - Screenshots, complete recordings, TXT, Markdown, manifest data, and ZIP files are not uploaded.
 - GA4 is embedded with the official Google tag snippet and Google Consent Mode. Google AdSense is wired for production builds with the configured publisher ID.
@@ -109,6 +110,7 @@ env.AI.run("@cf/deepgram/nova-3", {
   encoding: "linear16",
   sample_rate: "16000",
   interim_results: "true",
+  diarize: true,
   language: "ja"
 }, {
   websocket: true
@@ -192,16 +194,16 @@ screenshots/
 
 ## Speaker / Source Marking
 
-The app does not perform real speaker diarization, voiceprint recognition, true-name identification, or cloud speaker recognition.
+The app does not perform voiceprint recognition, true-name identification, or remote participant identity recognition. It requests best-effort anonymous diarization from Nova-3 realtime STT; when available, transcript segments may include labels such as `Speaker 0` or `Speaker 1`.
 
-Speaker labels are inferred from browser-local Web Audio API RMS volume checks:
+Primary source labels are still inferred from browser-local Web Audio API RMS volume checks:
 
 - `User` = microphone input is active.
 - `Screen` = shared tab/window/screen audio is active.
 - `Mixed` = both microphone and shared audio are active.
 - `Unknown` = neither source is clearly active or the result is unclear.
 
-Each segment stores both `speaker` and `source`. Users can manually override the speaker for every segment.
+Each segment stores `speaker`, `source`, and optionally `diarizedSpeaker`. Users can manually override the broad speaker/source label for every segment.
 
 ## Automatic Segmentation
 

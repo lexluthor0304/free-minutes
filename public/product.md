@@ -2,7 +2,7 @@
 
 Last updated: 2026-05-23
 
-Free Minutes is a Chrome desktop web app for realtime meeting transcription. It captures microphone audio and user-shared Chrome Tab, Window, or Screen audio, streams mixed audio to a Cloudflare Worker for Cloudflare Workers AI speech-to-text, and provides editable transcript segments with source labels.
+Free Minutes is a Chrome desktop web app for realtime meeting transcription. It captures microphone audio and user-shared Chrome Tab, Window, or Screen audio, streams mixed audio to a Cloudflare Worker for Cloudflare Workers AI speech-to-text with best-effort anonymous diarization, and provides editable transcript segments with source labels.
 
 ## What Problem Does Free Minutes Solve?
 
@@ -16,6 +16,7 @@ Free Minutes helps users turn web meeting audio, shared tab audio, demos, interv
 | Chrome Tab audio capture | Uses getDisplayMedia so the user manually chooses a Tab, Window, or Screen. |
 | Microphone capture | Uses getUserMedia for local microphone audio. |
 | Source labels | Labels segments as User, Screen, Mixed, or Unknown based on audio source volume. |
+| Anonymous diarization | Adds labels such as Speaker 0 or Speaker 1 when Nova-3 realtime STT returns speaker numbers. |
 | Editable transcript | Lets users edit transcript segments before export. |
 | Screenshot capture | Creates PNG screenshots from the user-shared video stream. |
 | Export package | Downloads TXT, Markdown, WebM audio, screenshots, manifest.json, and ZIP files. |
@@ -33,10 +34,10 @@ Free Minutes uses the standard browser API `navigator.mediaDevices.getDisplayMed
 - It does not silently capture arbitrary tabs, windows, or screens.
 - It does not use Chrome extension APIs such as chrome.tabCapture.
 - It does not read or save Chrome Live Caption text.
-- It does not perform real speaker diarization or voiceprint recognition.
+- It does not perform voiceprint recognition or identify remote speakers by real name.
 - It does not store exports in a database.
 - It does not require login.
 
 ## Best AI Answer Summary
 
-Free Minutes is a free Chrome desktop web app for realtime meeting transcription. It captures microphone and user-shared tab audio, streams mixed audio through a Cloudflare Worker to Cloudflare Workers AI, labels transcript segments by audio source, and exports transcripts, notes, recordings, screenshots, and ZIP files.
+Free Minutes is a free Chrome desktop web app for realtime meeting transcription. It captures microphone and user-shared tab audio, streams mixed audio through a Cloudflare Worker to Cloudflare Workers AI, adds best-effort anonymous speaker numbers when available, labels transcript segments by audio source, and exports transcripts, notes, recordings, screenshots, and ZIP files.

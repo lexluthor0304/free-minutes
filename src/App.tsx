@@ -104,6 +104,13 @@ type LiveSttDebugState = {
   lastError: string | null;
 };
 
+type ParsedRealtimeSegment = {
+  text: string;
+  startTime?: number;
+  endTime?: number;
+  diarizedSpeaker?: string;
+};
+
 const initialTrackStatus: TrackStatus = {
   micAudio: false,
   displayAudio: false,
@@ -245,7 +252,7 @@ function App() {
   }, []);
 
   const appendTranscriptText = useCallback(
-    (text: string, startTime: number, endTime: number) => {
+    (text: string, startTime: number, endTime: number, diarizedSpeaker?: string) => {
       const cleanText = text.trim();
       if (!cleanText) {
         return;
@@ -269,6 +276,7 @@ function App() {
             text: cleanText,
             speaker: inference.speaker,
             source: inference.source,
+            diarizedSpeaker,
           },
         ]),
       );
@@ -523,16 +531,31 @@ function App() {
         }
 
         if (parsed.isFinal) {
-          const endTime = Math.max(
+          const fallbackEndTime = Math.max(
             parsed.endTime ?? getRecordingTime(),
             realtimeSttFinalBoundaryRef.current + 0.1,
           );
-          const startTime = Math.max(
+          const fallbackStartTime = Math.max(
             realtimeSttFinalBoundaryRef.current,
-            Math.min(parsed.startTime ?? realtimeSttFinalBoundaryRef.current, endTime - 0.1),
+            Math.min(parsed.startTime ?? realtimeSttFinalBoundaryRef.current, fallbackEndTime - 0.1),
           );
-          realtimeSttFinalBoundaryRef.current = endTime;
-          appendTranscriptText(parsed.text, startTime, endTime);
+          const finalizedSegments = normalizeParsedRealtimeSegments(
+            parsed.segments,
+            fallbackStartTime,
+            fallbackEndTime,
+          );
+          for (const segment of finalizedSegments) {
+            appendTranscriptText(
+              segment.text,
+              segment.startTime ?? fallbackStartTime,
+              segment.endTime ?? fallbackEndTime,
+              segment.diarizedSpeaker,
+            );
+          }
+          realtimeSttFinalBoundaryRef.current = Math.max(
+            fallbackEndTime,
+            ...finalizedSegments.map((segment) => segment.endTime ?? fallbackEndTime),
+          );
           setSttState((current) => ({
             ...current,
             isTranscribing: true,
@@ -545,8 +568,8 @@ function App() {
             status: "Realtime final text",
             chunkCount: current.chunkCount + 1,
             chunksWithText: current.chunksWithText + 1,
-            lastRange: `${formatSegmentTime(startTime)} - ${formatSegmentTime(endTime)}`,
-            lastSegments: 1,
+            lastRange: `${formatSegmentTime(fallbackStartTime)} - ${formatSegmentTime(fallbackEndTime)}`,
+            lastSegments: finalizedSegments.length,
             lastError: null,
           }));
         } else {
@@ -1060,7 +1083,7 @@ function App() {
                 {transcriptSegments.map((segment) => (
                   <article className="focus-transcript-item" key={segment.id}>
                     <div className="focus-segment-meta">
-                      <span>{getSpeakerLabel(segment.speaker)}</span>
+                      <span>{getSegmentSpeakerLabel(segment)}</span>
                       <small>
                         {formatSegmentTime(segment.startTime)} - {formatSegmentTime(segment.endTime)}
                       </small>
@@ -1071,7 +1094,7 @@ function App() {
                         setSegments((current) => updateSegmentText(current, segment.id, event.target.value))
                       }
                       rows={getCompactTranscriptRows(segment.text)}
-                      aria-label={`Edit transcript from ${getSpeakerLabel(segment.speaker)}`}
+                      aria-label={`Edit transcript from ${getSegmentSpeakerLabel(segment)}`}
                     />
                   </article>
                 ))}
@@ -1117,8 +1140,8 @@ function SeoContent() {
           <p>
             Free Minutes is built for people who need a lightweight meeting transcript tool for web
             meetings, YouTube-style audio review, demos, interviews, or internal calls. It focuses on
-            live text, compact transcripts, source labels, and practical TXT, Markdown, audio, and ZIP
-            export.
+            live text, compact transcripts, source labels, anonymous speaker numbers when available,
+            and practical TXT, Markdown, audio, and ZIP export.
           </p>
         </section>
 
@@ -1154,8 +1177,9 @@ function SeoContent() {
         <div>
           <dt>Can Free Minutes identify each remote speaker by name?</dt>
           <dd>
-            No. It does not perform voiceprint recognition or real diarization. Segments are labeled
-            by source: User, Screen, Mixed, or Unknown.
+            No. It does not perform voiceprint recognition or real-name identification. Nova-3 can
+            return best-effort anonymous speaker numbers, and segments are also labeled by source:
+            User, Screen, Mixed, or Unknown.
           </dd>
         </div>
         <div>
@@ -1353,7 +1377,7 @@ function TranscriptEditor(props: {
                   <strong>
                     {formatSegmentTime(segment.startTime)} - {formatSegmentTime(segment.endTime)}
                   </strong>
-                  <span>{segment.source}</span>
+                  <span>{[segment.source, segment.diarizedSpeaker].filter(Boolean).join(" / ")}</span>
                 </div>
                 <select
                   value={segment.speaker}
@@ -1561,8 +1585,28 @@ function segmentKey(segment: TranscriptSegment): string {
   return [
     segment.startTime.toFixed(1),
     segment.endTime.toFixed(1),
+    segment.speaker,
+    segment.source,
+    segment.diarizedSpeaker ?? "",
     segment.text.trim(),
   ].join("|");
+}
+
+function getSegmentSpeakerLabel(segment: TranscriptSegment): string {
+  const baseLabel = getSpeakerLabel(segment.speaker);
+  if (!segment.diarizedSpeaker) {
+    return baseLabel;
+  }
+  if (segment.speaker === "Screen") {
+    return `Shared ${segment.diarizedSpeaker}`;
+  }
+  if (segment.speaker === "Mixed") {
+    return `Mixed ${segment.diarizedSpeaker}`;
+  }
+  if (segment.speaker === "Unknown") {
+    return segment.diarizedSpeaker;
+  }
+  return baseLabel;
 }
 
 function getSpeakerLabel(speaker: Speaker): string {
@@ -1627,6 +1671,7 @@ function parseRealtimeSttMessage(data: unknown): {
   isFinal: boolean;
   startTime?: number;
   endTime?: number;
+  segments: ParsedRealtimeSegment[];
 } | null {
   const rawText = decodeSocketMessage(data);
   if (!rawText) {
@@ -1635,8 +1680,26 @@ function parseRealtimeSttMessage(data: unknown): {
 
   try {
     const payload = JSON.parse(rawText) as {
-      channel?: { alternatives?: Array<{ transcript?: unknown }> };
+      channel?: {
+        alternatives?: Array<{
+          transcript?: unknown;
+          words?: Array<{
+            word?: unknown;
+            punctuated_word?: unknown;
+            start?: unknown;
+            end?: unknown;
+            speaker?: unknown;
+          }>;
+        }>;
+      };
       transcript?: unknown;
+      words?: Array<{
+        word?: unknown;
+        punctuated_word?: unknown;
+        start?: unknown;
+        end?: unknown;
+        speaker?: unknown;
+      }>;
       is_final?: unknown;
       speech_final?: unknown;
       event?: unknown;
@@ -1661,6 +1724,12 @@ function parseRealtimeSttMessage(data: unknown): {
     const endTime =
       numberFromUnknown(payload.audio_window_end) ??
       (startTime !== undefined && duration !== undefined ? startTime + duration : undefined);
+    const words = payload.channel?.alternatives?.[0]?.words ?? payload.words ?? [];
+    const segments = buildDiarizedRealtimeSegments(words, {
+      text,
+      startTime,
+      endTime,
+    });
     const eventName = typeof payload.event === "string" ? payload.event : "";
     const isFinal =
       payload.is_final === true ||
@@ -1673,10 +1742,132 @@ function parseRealtimeSttMessage(data: unknown): {
       isFinal,
       startTime,
       endTime,
+      segments,
     };
   } catch {
     return null;
   }
+}
+
+function buildDiarizedRealtimeSegments(
+  words: Array<{
+    word?: unknown;
+    punctuated_word?: unknown;
+    start?: unknown;
+    end?: unknown;
+    speaker?: unknown;
+  }>,
+  fallback: ParsedRealtimeSegment,
+): ParsedRealtimeSegment[] {
+  if (!words.length) {
+    return [fallback];
+  }
+
+  const segments: ParsedRealtimeSegment[] = [];
+  let current: ParsedRealtimeSegment | null = null;
+
+  for (const word of words) {
+    const text = getRealtimeWordText(word);
+    if (!text) {
+      continue;
+    }
+
+    const diarizedSpeaker = formatDiarizedSpeaker(word.speaker);
+    const startTime = numberFromUnknown(word.start);
+    const endTime = numberFromUnknown(word.end);
+
+    if (!current || current.diarizedSpeaker !== diarizedSpeaker) {
+      if (current?.text.trim()) {
+        segments.push({
+          ...current,
+          text: cleanupRealtimeText(current.text),
+        });
+      }
+      current = {
+        text,
+        startTime,
+        endTime,
+        diarizedSpeaker,
+      };
+      continue;
+    }
+
+    current.text = `${current.text} ${text}`;
+    current.startTime = current.startTime ?? startTime;
+    current.endTime = endTime ?? current.endTime;
+  }
+
+  if (current?.text.trim()) {
+    segments.push({
+      ...current,
+      text: cleanupRealtimeText(current.text),
+    });
+  }
+
+  return segments.length ? segments : [fallback];
+}
+
+function normalizeParsedRealtimeSegments(
+  segments: ParsedRealtimeSegment[],
+  fallbackStartTime: number,
+  fallbackEndTime: number,
+): ParsedRealtimeSegment[] {
+  const fallbackDuration = Math.max(0.1, fallbackEndTime - fallbackStartTime);
+  const safeSegments = segments.length
+    ? segments
+    : [{ text: "", startTime: fallbackStartTime, endTime: fallbackEndTime }];
+
+  return safeSegments.map((segment, index) => {
+    const startTime = Math.max(
+      fallbackStartTime,
+      Math.min(
+        segment.startTime ?? fallbackStartTime + (fallbackDuration / safeSegments.length) * index,
+        fallbackEndTime - 0.1,
+      ),
+    );
+    const endTime = Math.max(
+      startTime + 0.1,
+      Math.min(
+        segment.endTime ??
+          fallbackStartTime + (fallbackDuration / safeSegments.length) * (index + 1),
+        fallbackEndTime,
+      ),
+    );
+
+    return {
+      ...segment,
+      startTime,
+      endTime,
+    };
+  });
+}
+
+function getRealtimeWordText(word: { word?: unknown; punctuated_word?: unknown }): string {
+  if (typeof word.punctuated_word === "string" && word.punctuated_word.trim()) {
+    return word.punctuated_word.trim();
+  }
+  if (typeof word.word === "string" && word.word.trim()) {
+    return word.word.trim();
+  }
+  return "";
+}
+
+function formatDiarizedSpeaker(value: unknown): string | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return `Speaker ${Math.trunc(value)}`;
+  }
+  if (typeof value === "string" && value.trim()) {
+    const trimmed = value.trim();
+    return trimmed.toLowerCase().startsWith("speaker") ? trimmed : `Speaker ${trimmed}`;
+  }
+  return undefined;
+}
+
+function cleanupRealtimeText(text: string): string {
+  return text
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function decodeSocketMessage(data: unknown): string | null {

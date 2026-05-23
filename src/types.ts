@@ -9,6 +9,7 @@ export type TranscriptSegment = {
   text: string;
   speaker: Speaker;
   source: AudioSource;
+  diarizedSpeaker?: string;
 };
 
 export type ScreenshotItem = {
@@ -38,6 +39,7 @@ export type ExportManifest = {
     endTime: number;
     speaker: Speaker;
     source: AudioSource;
+    diarizedSpeaker?: string;
   }>;
 };
 

@@ -6,7 +6,7 @@ Free Minutes is designed to keep editing and exports in the browser while using 
 
 ## Data Sent for Realtime STT
 
-When listening is active, Free Minutes streams raw mixed-audio frames to its Cloudflare Worker. The Worker opens a Cloudflare Workers AI realtime speech-to-text connection and returns transcript events to the browser.
+When listening is active, Free Minutes streams raw mixed-audio frames to its Cloudflare Worker. The Worker opens a Cloudflare Workers AI realtime speech-to-text connection with best-effort anonymous diarization enabled and returns transcript events to the browser.
 
 ## Data Not Saved by Export Features
 

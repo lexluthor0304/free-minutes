@@ -35,7 +35,7 @@ export function generateTranscriptTxt(options: ExportTextOptions): string {
   if (options.segments.length) {
     for (const segment of options.segments) {
       lines.push(
-        `[${formatSegmentTime(segment.startTime)} - ${formatSegmentTime(segment.endTime)}] ${segment.speaker} / ${segment.source}`,
+        `[${formatSegmentTime(segment.startTime)} - ${formatSegmentTime(segment.endTime)}] ${formatSegmentLabel(segment)}`,
         segment.text || "(empty)",
         "",
       );
@@ -83,7 +83,7 @@ export function generateMeetingMarkdown(options: ExportTextOptions): string {
   if (options.segments.length) {
     for (const segment of options.segments) {
       lines.push(
-        `### ${formatSegmentTime(segment.startTime)} - ${formatSegmentTime(segment.endTime)} | ${segment.speaker} / ${segment.source}`,
+        `### ${formatSegmentTime(segment.startTime)} - ${formatSegmentTime(segment.endTime)} | ${formatSegmentLabel(segment)}`,
         "",
         segment.text || "_Empty segment._",
         "",
@@ -94,6 +94,16 @@ export function generateMeetingMarkdown(options: ExportTextOptions): string {
   }
 
   return lines.join("\n");
+}
+
+function formatSegmentLabel(segment: TranscriptSegment): string {
+  return [
+    segment.speaker,
+    segment.source,
+    segment.diarizedSpeaker,
+  ]
+    .filter(Boolean)
+    .join(" / ");
 }
 
 export function downloadBlob(blob: Blob, filename: string): void {
