@@ -1,0 +1,16 @@
+name = "free-minutes"
+main = "src/worker.ts"
+compatibility_date = "2026-05-23"
+workers_dev = true
+
+[[routes]]
+pattern = "minutes.tokugai.com"
+custom_domain = true
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[ai]
+binding = "AI"
